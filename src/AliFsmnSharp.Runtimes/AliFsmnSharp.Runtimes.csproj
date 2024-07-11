@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.Build.NoTargets/2.0.1">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>preview</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="runtimes/**/*" CopyToOutputDirectory="PreserveNewest"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="runtimes\win-x64\native\" />
+    </ItemGroup>
+
+
+</Project>

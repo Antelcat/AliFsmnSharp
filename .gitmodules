@@ -1,0 +1,3 @@
+[submodule "extern/SharpMedia"]
+	path = extern/SharpMedia
+	url = https://github.com/Antelcat/SharpMedia

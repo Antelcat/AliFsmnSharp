@@ -1,0 +1,59 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AliFsmnSharp", "AliFsmnSharp\AliFsmnSharp.csproj", "{93F16DE2-28B3-4E3B-8E6D-7D6813ABF1E6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AliFsmnSharp.Runtimes", "AliFsmnSharp.Runtimes\AliFsmnSharp.Runtimes.csproj", "{2C521D9F-8226-4442-8E60-4A64710450B9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AliFsmnSharp.TestConsole", "AliFsmnSharp.TestConsole\AliFsmnSharp.TestConsole.csproj", "{A6745C3B-F205-47EC-B2BC-5156B1683BCB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extern", "Extern", "{6BD09F8E-2B63-4028-B937-F9B8028F792F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Antelcat.Media", "..\extern\SharpMedia\src\Antelcat.Media\Antelcat.Media.csproj", "{E85A6F68-EA26-4A97-BB0D-AB0BAF5009A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Antelcat.Media.Abstractions", "..\extern\SharpMedia\src\Antelcat.Media.Abstractions\Antelcat.Media.Abstractions.csproj", "{B9F60304-4B9E-4072-95C7-312770079BED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Antelcat.Media.Windows", "..\extern\SharpMedia\src\Antelcat.Media.Windows\Antelcat.Media.Windows.csproj", "{840158BE-12B5-4C7F-B905-FBBABC9DEEF3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AliFsmnSharp.Model", "AliFsmnSharp.Model\AliFsmnSharp.Model.csproj", "{E33C3850-AE7C-42FA-B1EA-79ECE616BADB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{93F16DE2-28B3-4E3B-8E6D-7D6813ABF1E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93F16DE2-28B3-4E3B-8E6D-7D6813ABF1E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93F16DE2-28B3-4E3B-8E6D-7D6813ABF1E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93F16DE2-28B3-4E3B-8E6D-7D6813ABF1E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C521D9F-8226-4442-8E60-4A64710450B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C521D9F-8226-4442-8E60-4A64710450B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C521D9F-8226-4442-8E60-4A64710450B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C521D9F-8226-4442-8E60-4A64710450B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6745C3B-F205-47EC-B2BC-5156B1683BCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6745C3B-F205-47EC-B2BC-5156B1683BCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6745C3B-F205-47EC-B2BC-5156B1683BCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6745C3B-F205-47EC-B2BC-5156B1683BCB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E85A6F68-EA26-4A97-BB0D-AB0BAF5009A5}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{E85A6F68-EA26-4A97-BB0D-AB0BAF5009A5}.Debug|Any CPU.Build.0 = Debug|x64
+		{E85A6F68-EA26-4A97-BB0D-AB0BAF5009A5}.Release|Any CPU.ActiveCfg = Release|x64
+		{E85A6F68-EA26-4A97-BB0D-AB0BAF5009A5}.Release|Any CPU.Build.0 = Release|x64
+		{B9F60304-4B9E-4072-95C7-312770079BED}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{B9F60304-4B9E-4072-95C7-312770079BED}.Debug|Any CPU.Build.0 = Debug|x64
+		{B9F60304-4B9E-4072-95C7-312770079BED}.Release|Any CPU.ActiveCfg = Release|x64
+		{B9F60304-4B9E-4072-95C7-312770079BED}.Release|Any CPU.Build.0 = Release|x64
+		{840158BE-12B5-4C7F-B905-FBBABC9DEEF3}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{840158BE-12B5-4C7F-B905-FBBABC9DEEF3}.Debug|Any CPU.Build.0 = Debug|x64
+		{840158BE-12B5-4C7F-B905-FBBABC9DEEF3}.Release|Any CPU.ActiveCfg = Release|x64
+		{840158BE-12B5-4C7F-B905-FBBABC9DEEF3}.Release|Any CPU.Build.0 = Release|x64
+		{E33C3850-AE7C-42FA-B1EA-79ECE616BADB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E33C3850-AE7C-42FA-B1EA-79ECE616BADB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E33C3850-AE7C-42FA-B1EA-79ECE616BADB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E33C3850-AE7C-42FA-B1EA-79ECE616BADB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E85A6F68-EA26-4A97-BB0D-AB0BAF5009A5} = {6BD09F8E-2B63-4028-B937-F9B8028F792F}
+		{B9F60304-4B9E-4072-95C7-312770079BED} = {6BD09F8E-2B63-4028-B937-F9B8028F792F}
+		{840158BE-12B5-4C7F-B905-FBBABC9DEEF3} = {6BD09F8E-2B63-4028-B937-F9B8028F792F}
+	EndGlobalSection
+EndGlobal
