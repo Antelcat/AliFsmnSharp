@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFrameworks>net8.0-windows;net8.0;</TargetFrameworks>
+        <LangVersion>preview</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <InvariantGlobalization>true</InvariantGlobalization>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Condition="$(TargetFramework) == 'net8.0-windows'" Include="..\..\extern\SharpMedia\src\Antelcat.Media.Windows\Antelcat.Media.Windows.csproj" />
+      <ProjectReference Include="..\..\extern\SharpMedia\src\Antelcat.Media\Antelcat.Media.csproj" />
+      <ProjectReference Include="..\AliFsmnSharp.Model\AliFsmnSharp.Model.csproj" />
+      <ProjectReference Include="..\AliFsmnSharp.Runtimes\AliFsmnSharp.Runtimes.csproj" />
+      <ProjectReference Include="..\AliFsmnSharp\AliFsmnSharp.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="Resources\**\*" CopyToOutputDirectory="PreserveNewest"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="肾水样变性.wav">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="asr_example.wav">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+</Project>
