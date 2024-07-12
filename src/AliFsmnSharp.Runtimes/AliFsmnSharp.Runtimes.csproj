@@ -11,9 +11,4 @@
         <Content Include="runtimes/**/*" CopyToOutputDirectory="PreserveNewest"/>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="runtimes\win-x64\native\" />
-    </ItemGroup>
-
-
 </Project>
