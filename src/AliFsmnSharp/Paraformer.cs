@@ -145,9 +145,9 @@ public sealed class Paraformer : IDisposable
                 else
                 {
                     yield return new TextSpan(
-                        predict[0].Replace("@@", ""),
-                        timestamps[0].BeginTime,
-                        timestamps[^1].EndTime);
+                        predict.FirstOrDefault()?.Replace("@@", "") ?? "",
+                        timestamps.FirstOrDefault()?.BeginTime      ?? TimeSpan.Zero,
+                        timestamps.LastOrDefault()?.EndTime         ?? TimeSpan.Zero);
                 }
             }
         }
