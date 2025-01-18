@@ -55,13 +55,12 @@ public sealed class Paraformer : IDisposable
             List<DisposableNamedOnnxValue> outputs;
             try
             {
-                outputs = session.Run(new[]
-                {
+                outputs = session.Run([
                     NamedOnnxValue.CreateFromTensor("speech",
                         new DenseTensor<float>(feats, speechDim)),
                     NamedOnnxValue.CreateFromTensor("speech_lengths",
                         new DenseTensor<int>(featsCount, speechLengthsDim)),
-                }).ToList();
+                ]).ToList();
             }
             catch (OnnxRuntimeException)
             {
@@ -70,85 +69,43 @@ public sealed class Paraformer : IDisposable
 
             var amScores = outputs[0].AsTensor<float>().ToDenseTensor();
             var predicts = Decode(
-                amScores.Buffer, amScores.Dimensions,
+                amScores.Buffer,
+                amScores.Dimensions,
                 outputs[1].AsTensor<int>().ToArray());
-            var usPeaks           = outputs[3].AsTensor<float>().ToDenseTensor();
+            var usPeaks = outputs[3].AsTensor<float>().ToDenseTensor();
             var usPackSliceLength = (int)usPeaks.Length / usPeaks.Dimensions[0];
-            foreach (var (i, predict) in predicts.Select((x, i) => (i, x)))
+            foreach (var (i, predict) in predicts.Select((x,i)=> (i,x)))
             {
-                var usPeak     = usPeaks.Buffer.Slice(i * usPackSliceLength, usPackSliceLength);
-                var timestamps = TimestampLfr6Onnx(usPeak, predict);
-                if (timestamps.Count > 1)
+                var usPeak = usPeaks.Buffer.Slice(i * usPackSliceLength, usPackSliceLength);
+                var timeRanges = TimestampLfr6Onnx(usPeak, predict);
+               
+                // 根据时间戳进行断句
+                var beginIndex = 0;
+                foreach (var (j, timeRange) in timeRanges.Select((x, d) => (d, x)))
                 {
-                    // 有多个，根据时间戳进行断句
-                    var timestampDelta = new double[timestamps.Count - 1];
-                    for (var j = 0; j < timestampDelta.Length; j++)
+                    if (j >= predict.Length - 1)
                     {
-                        timestampDelta[j] =
-                            (timestamps[j + 1].BeginTime - timestamps[j].EndTime).TotalMilliseconds;
+                        // 剩余的全部合并
+                        yield return GetAccurateTextSpan(predict.Length - 1);
                     }
-
-                    var threshold = timestampDelta.Sum() / timestampDelta.Length * 2;
-                    var splitIndices = timestampDelta.Select((x, index) => (index, x))
-                        .Where(x => x.Item2 > threshold)
-                        .Select(static x => x.Item1)
-                        .ToList();
-
-                    if (splitIndices.Count > 0 && splitIndices[0] == 1)
+                    else if (j > beginIndex)
                     {
-                        splitIndices.RemoveAt(0);
-                    }
-
-                    if (splitIndices.Count > 0 && splitIndices[^1] == timestampDelta.Length)
-                    {
-                        splitIndices.RemoveAt(splitIndices.Count - 1);
-                    }
-
-                    for (var j = 0; j < splitIndices.Count - 1; j++)
-                    {
-                        var gap = splitIndices[j + 1] - splitIndices[j];
-                        switch (gap)
+                        var duration = (timeRanges[j + 1].BeginTime - timeRange.BeginTime).Ticks;
+                        var averageDuration = timeRanges.Skip(beginIndex).Take(j - beginIndex + 1)
+                            .CurrentAndNext().Average(pair => (pair.next.BeginTime - pair.current.BeginTime).Ticks);
+                        if (duration > averageDuration * 2)
                         {
-                            case 1:
-                                splitIndices.RemoveAt(j + 1);
-                                j--;
-                                continue; // 只有一个字符，不需要分割
-                            case <= 30:
-                                continue;
-                        }
-
-                        // 如果两个断点之间的间隔大于30，那么将其分成若干个最长15个字符的句子
-                        while (gap > 15)
-                        {
-                            splitIndices.Insert(j + 1, splitIndices[j] + 15);
-                            gap -= 15;
-                            j++;
+                            yield return GetAccurateTextSpan(j);
+                            beginIndex = j + 1;
                         }
                     }
-
-                    for (var j = 0; j < splitIndices.Count; j++)
-                    {
-                        var begin = j == 0 ? 0 : splitIndices[j - 1];
-                        var end   = splitIndices[j];
-                        yield return new TextSpan(
-                            string.Join(null, predict[begin..end]).Replace("@@", ""),
-                            timestamps[begin].BeginTime,
-                            timestamps[end].EndTime);
-                    }
-
-                    var lastIndex = splitIndices.Count == 0 ? 0 : splitIndices[^1];
-                    yield return new TextSpan(
-                        string.Join(null, predict[lastIndex..]).Replace("@@", ""),
-                        timestamps[lastIndex].BeginTime,
-                        timestamps[^1].EndTime);
                 }
-                else
-                {
-                    yield return new TextSpan(
-                        predict.FirstOrDefault()?.Replace("@@", "") ?? "",
-                        timestamps.FirstOrDefault()?.BeginTime      ?? TimeSpan.Zero,
-                        timestamps.LastOrDefault()?.EndTime         ?? TimeSpan.Zero);
-                }
+
+                AccurateTextSpan GetAccurateTextSpan(int endIndex) =>
+                    new(Enumerable
+                        .Range(beginIndex, endIndex - beginIndex + 1)
+                        .Select(index => new TextSpan(predict[index].Replace("@@", ""), timeRanges[index].BeginTime, timeRanges[index].EndTime))
+                        .ToList());
             }
         }
     }
@@ -208,12 +165,12 @@ public sealed class Paraformer : IDisposable
         {
             var slice = arrays.Slice(i * y, y);
 
-            var max      = slice.Span[0];
+            var max = slice.Span[0];
             var maxIndex = 0;
             for (var j = 1; j < y; j++)
             {
                 if (!(slice.Span[j] > max)) continue;
-                max      = slice.Span[j];
+                max = slice.Span[j];
                 maxIndex = j;
             }
 
@@ -223,22 +180,22 @@ public sealed class Paraformer : IDisposable
         return result;
     }
 
-    public record TimeWindow(TimeSpan BeginTime, TimeSpan EndTime);
+    private readonly record struct TimeRange(TimeSpan BeginTime, TimeSpan EndTime);
 
-    private static List<TimeWindow> TimestampLfr6Onnx(
+    private static List<TimeRange> TimestampLfr6Onnx(
         Memory<float> usPeaks,
         string[] rawTokens,
         float beginTime = 0.0f,
         float totalOffset = -1.5f)
     {
-        const int    StartEndThreshold = 5;
-        const int    MaxTokenDuration  = 30;
-        const double TimeRate          = 10.0 * 6 / 1000 / 3;
+        const int StartEndThreshold = 5;
+        const int MaxTokenDuration = 30;
+        const double TimeRate = 10.0 * 6 / 1000 / 3;
 
         var numFrames = usPeaks.Length;
 
-        var newCharList   = new List<string>();
-        var timestampList = new List<TimeWindow>();
+        var newCharList = new List<string>();
+        var timestampList = new List<TimeRange>();
 
         var firePlace = usPeaks.Span.ToArray()
             .Select((value, index) => value > 1.0 - 1e-4 ? index : -1)
@@ -248,7 +205,7 @@ public sealed class Paraformer : IDisposable
 
         if (firePlace[0] > StartEndThreshold)
         {
-            timestampList.Add(new TimeWindow(TimeSpan.FromSeconds(0.0),
+            timestampList.Add(new TimeRange(TimeSpan.FromSeconds(0.0),
                 TimeSpan.FromSeconds(firePlace[0] * TimeRate)));
             newCharList.Add("<sil>");
         }
@@ -258,19 +215,19 @@ public sealed class Paraformer : IDisposable
             newCharList.Add(rawTokens[i]);
 
             if (i == firePlace.Count - 2 ||
-                firePlace[i + 1]     - firePlace[i] < MaxTokenDuration)
+                firePlace[i + 1] - firePlace[i] < MaxTokenDuration)
             {
-                timestampList.Add(new TimeWindow(TimeSpan.FromSeconds(firePlace[i] * TimeRate),
-                    TimeSpan.FromSeconds(firePlace[i + 1]                          * TimeRate)));
+                timestampList.Add(new TimeRange(TimeSpan.FromSeconds(firePlace[i] * TimeRate),
+                    TimeSpan.FromSeconds(firePlace[i + 1] * TimeRate)));
             }
             else
             {
                 var split = firePlace[i] + MaxTokenDuration;
 
-                timestampList.Add(new TimeWindow(TimeSpan.FromSeconds(firePlace[i] * TimeRate),
-                    TimeSpan.FromSeconds(split                                     * TimeRate)));
-                timestampList.Add(new TimeWindow(TimeSpan.FromSeconds(split * TimeRate),
-                    TimeSpan.FromSeconds(firePlace[i + 1]                   * TimeRate)));
+                timestampList.Add(new TimeRange(TimeSpan.FromSeconds(firePlace[i] * TimeRate),
+                    TimeSpan.FromSeconds(split * TimeRate)));
+                timestampList.Add(new TimeRange(TimeSpan.FromSeconds(split * TimeRate),
+                    TimeSpan.FromSeconds(firePlace[i + 1] * TimeRate)));
 
                 newCharList.Add("<sil>");
             }
@@ -282,8 +239,8 @@ public sealed class Paraformer : IDisposable
 
             var lastWindow = timestampList[^1];
             timestampList[^1] = lastWindow with { EndTime = TimeSpan.FromSeconds(end * TimeRate) };
-            timestampList.Add(new TimeWindow(TimeSpan.FromSeconds(end * TimeRate),
-                TimeSpan.FromSeconds(numFrames                        * TimeRate)));
+            timestampList.Add(new TimeRange(TimeSpan.FromSeconds(end * TimeRate),
+                TimeSpan.FromSeconds(numFrames * TimeRate)));
 
             newCharList.Add("<sil>");
         }
@@ -302,8 +259,8 @@ public sealed class Paraformer : IDisposable
         for (var i = 0; i < timestampList.Count; i++)
         {
             var window = timestampList[i];
-            timestampList[i] = new TimeWindow(window.BeginTime + TimeSpan.FromSeconds(beginTime / 1000.0),
-                window.EndTime                                 + TimeSpan.FromSeconds(beginTime / 1000.0));
+            timestampList[i] = new TimeRange(window.BeginTime + TimeSpan.FromSeconds(beginTime / 1000.0),
+                window.EndTime + TimeSpan.FromSeconds(beginTime / 1000.0));
         }
 
         return timestampList.Where((_, index) => newCharList[index] != "<sil>").ToList();
@@ -313,5 +270,24 @@ public sealed class Paraformer : IDisposable
     public void Dispose()
     {
         session.Dispose();
+    }
+}
+
+file static class LinqExtension
+{
+    public static IEnumerable<(T current, T next)> CurrentAndNext<T>(this IEnumerable<T> source)
+    {
+        using var enumerator = source.GetEnumerator();
+        if (!enumerator.MoveNext())
+        {
+            yield break;
+        }
+
+        var previous = enumerator.Current;
+        while (enumerator.MoveNext())
+        {
+            yield return (previous, enumerator.Current);
+            previous = enumerator.Current;
+        }
     }
 }
